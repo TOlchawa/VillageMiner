@@ -1,0 +1,2 @@
+# VillageMiner
+Plugin for Minecraft
