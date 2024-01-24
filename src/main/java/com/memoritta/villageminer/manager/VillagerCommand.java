@@ -1,4 +1,6 @@
-package com.memoritta.villageminer;
+package com.memoritta.villageminer.manager;
+import com.memoritta.villageminer.VillageMinerPlugin;
+import com.memoritta.villageminer.controller.VillageMinerListener;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
@@ -7,7 +9,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.logging.Logger;
 
@@ -47,7 +48,7 @@ public class VillagerCommand implements CommandExecutor {
                 villager.setCustomName(ChatColor.GRAY + "Miner");
                 villager.setCustomNameVisible(true);
                 villager.getPersistentDataContainer().set(VillageMinerPlugin.isMinerAttributeKey, PersistentDataType.STRING, MINER);
-                villager.getPersistentDataContainer().set(VillageMinerPlugin.ownerMinerAttributeKey, PersistentDataType.STRING, player.getUniqueId().toString());
+                villager.getPersistentDataContainer().set(VillageMinerPlugin.ownerMinerAttributeKey, PersistentDataType.STRING, player.getName());
 
                 villageMinerListener.register(villager);
 

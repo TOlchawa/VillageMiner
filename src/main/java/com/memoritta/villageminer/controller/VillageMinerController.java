@@ -1,5 +1,7 @@
-package com.memoritta.villageminer;
+package com.memoritta.villageminer.controller;
 
+import com.memoritta.villageminer.VillageMinerPlugin;
+import com.memoritta.villageminer.util.VillageMinerUtils;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
@@ -42,12 +44,12 @@ public class VillageMinerController extends BukkitRunnable implements VillageMin
     @Override
     public void killMiners(Player owner) {
         Set<Villager> killed = new HashSet<>();
-        UUID playerUniqueId = owner.getUniqueId();
-        villageMinerPlugin.getLogger().finest("killing all miners for: " + playerUniqueId);
+        String playerName = owner.getName();
+        villageMinerPlugin.getLogger().finest("killing all miners for: " + playerName);
         miners.forEach(miner -> {
-            String minerOwnerUUID = miner.getPersistentDataContainer().get(VillageMinerPlugin.ownerMinerAttributeKey, PersistentDataType.STRING);
+            String minerOwnerName = miner.getPersistentDataContainer().get(VillageMinerPlugin.ownerMinerAttributeKey, PersistentDataType.STRING);
 
-            if (minerOwnerUUID == null || playerUniqueId.toString().equalsIgnoreCase(minerOwnerUUID)) {
+            if (minerOwnerName == null || playerName.equalsIgnoreCase(minerOwnerName)) {
                 killed.add(miner);
                 miner.remove();
             }

@@ -1,4 +1,4 @@
-package com.memoritta.villageminer;
+package com.memoritta.villageminer.controller;
 
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;

@@ -1,5 +1,6 @@
-package com.memoritta.villageminer;
+package com.memoritta.villageminer.util;
 
+import com.memoritta.villageminer.VillageMinerPlugin;
 import org.bukkit.Location;
 import org.bukkit.entity.Villager;
 import org.bukkit.persistence.PersistentDataType    ;
@@ -21,7 +22,7 @@ public class VillageMinerUtils {
         return targetLocation;
     }
 
-    Location calculateVillagerLocation(Villager villager) {
+    public Location calculateVillagerLocation(Villager villager) {
         String sX = villager.getPersistentDataContainer().get(VillageMinerPlugin.locationXAttributeKey, PersistentDataType.STRING);
         String sY = villager.getPersistentDataContainer().get(VillageMinerPlugin.locationYAttributeKey, PersistentDataType.STRING);
         String sZ = villager.getPersistentDataContainer().get(VillageMinerPlugin.locationZAttributeKey, PersistentDataType.STRING);

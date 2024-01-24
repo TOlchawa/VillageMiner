@@ -1,5 +1,8 @@
-package com.memoritta.villageminer;
+package com.memoritta.villageminer.util;
 
+import com.memoritta.villageminer.VillageMinerPlugin;
+import com.memoritta.villageminer.controller.VillageMinerListener;
+import com.memoritta.villageminer.util.VillageMinerUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;

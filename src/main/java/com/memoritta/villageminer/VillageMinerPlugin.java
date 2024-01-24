@@ -1,5 +1,9 @@
 package com.memoritta.villageminer;
 
+import com.memoritta.villageminer.controller.VillageMinerController;
+import com.memoritta.villageminer.manager.VillagerCommand;
+import com.memoritta.villageminer.util.VillageMinerUtils;
+import com.memoritta.villageminer.util.VillagerPickupTask;
 import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.java.JavaPlugin;
 
