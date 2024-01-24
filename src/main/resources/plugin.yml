@@ -9,3 +9,9 @@ commands:
   killminer:
     description: Kill miner.
     usage: /killvillageminer
+  follow:
+    description: Follow owner.
+    usage: /followvillageminer
+  unfollow:
+    description: Unfollow owner.
+    usage: /unfollowvillageminer

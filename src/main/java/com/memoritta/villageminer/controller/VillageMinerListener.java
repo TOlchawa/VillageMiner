@@ -8,4 +8,8 @@ public interface VillageMinerListener {
     void register(Villager miner);
 
     void killMiners(Player owner);
+
+    void followOwner(Player owner);
+
+    void unfollowOwner(Player owner);
 }

@@ -36,7 +36,16 @@ public class VillagerCommand implements CommandExecutor {
                 villageMinerListener.killMiners(player);
                 return true;
 
+            } else if ("follow".equalsIgnoreCase(command.getName())) {
+                plugin.getLogger().finest("killing ...");
+                villageMinerListener.followOwner(player);
+                return true;
+            } else if ("unfollow".equalsIgnoreCase(command.getName())) {
+                plugin.getLogger().finest("killing ...");
+                villageMinerListener.unfollowOwner(player);
+                return true;
             } else {
+
 
                 villageMinerListener.killMiners(player);
 
@@ -48,7 +57,7 @@ public class VillagerCommand implements CommandExecutor {
                 villager.setCustomName(ChatColor.GRAY + "Miner");
                 villager.setCustomNameVisible(true);
                 villager.getPersistentDataContainer().set(VillageMinerPlugin.isMinerAttributeKey, PersistentDataType.STRING, MINER);
-                villager.getPersistentDataContainer().set(VillageMinerPlugin.ownerMinerAttributeKey, PersistentDataType.STRING, player.getName());
+                villager.getPersistentDataContainer().set(VillageMinerPlugin.ownerMinerAttributeKey, PersistentDataType.STRING, player.getUniqueId().toString());
 
                 villageMinerListener.register(villager);
 

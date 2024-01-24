@@ -3,7 +3,7 @@ package com.memoritta.villageminer;
 import com.memoritta.villageminer.controller.VillageMinerController;
 import com.memoritta.villageminer.manager.VillagerCommand;
 import com.memoritta.villageminer.util.VillageMinerUtils;
-import com.memoritta.villageminer.util.VillagerPickupTask;
+import com.memoritta.villageminer.controller.VillagerPickupTask;
 import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -21,6 +21,7 @@ public class VillageMinerPlugin extends JavaPlugin {
     public static NamespacedKey locationXAttributeKey;
     public static NamespacedKey locationYAttributeKey;
     public static NamespacedKey locationZAttributeKey;
+    public static NamespacedKey modeAttributeKey;
     public static final String MINER = "miner";
 
     private Logger logger = this.getLogger();
@@ -38,6 +39,7 @@ public class VillageMinerPlugin extends JavaPlugin {
         locationXAttributeKey = new NamespacedKey(this, "location_X");
         locationYAttributeKey = new NamespacedKey(this, "location_Y");
         locationZAttributeKey = new NamespacedKey(this, "location_Z");
+        modeAttributeKey = new NamespacedKey(this, "miner_mode");
 
         logger.setLevel(Level.INFO);
 
