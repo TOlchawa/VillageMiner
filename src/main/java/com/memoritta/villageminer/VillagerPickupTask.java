@@ -12,22 +12,23 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.util.BoundingBox;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 public class VillagerPickupTask extends BukkitRunnable {
 
-    public static final int INITIAL_TIME_TO_DIGGING = 2;
-    private final JavaPlugin plugin;
+    public static final int INITIAL_TIME_TO_DIGGING = 1;
+    private final VillageMinerPlugin plugin;
     private final Map<UUID,AtomicInteger> minerAxeDurability = new HashMap<>();
+    private final VillageMinerListener villageMinerListener;
+    private final VillageMinerUtils utils;
 
-    public VillagerPickupTask(JavaPlugin plugin) {
+    public VillagerPickupTask(VillageMinerPlugin plugin, VillageMinerListener villageMinerListener, VillageMinerUtils utils) {
         this.plugin = plugin;
+        this.villageMinerListener = villageMinerListener;
+        this.utils = utils;
     }
 
     @Override
@@ -60,60 +61,39 @@ public class VillagerPickupTask extends BukkitRunnable {
     }
 
     private void processMining(Villager villager) {
-        plugin.getLogger().info("Process mining");
-        Location villagerLocation = calculateVillagerLocation(villager);
-        plugin.getLogger().info("Mining location: " + villagerLocation);
-        villager.teleport(villagerLocation);
+        plugin.getLogger().finest("Process mining");
+//        Location villagerLocation = utils.calculateVillagerLocation(villager);
+//        plugin.getLogger().finest("Mining location: " + villagerLocation);
+//        villager.teleport(villagerLocation);
 
         Integer time = villager.getPersistentDataContainer().get(VillageMinerPlugin.miningTimeAttributeKey, PersistentDataType.INTEGER);
-        if (time > 0) {
+        if (time > 1) {
             int remainingTime = time.intValue() - 1;
-            plugin.getLogger().info("remaining time: " + remainingTime);
+            plugin.getLogger().finest("remaining time: " + remainingTime);
             villager.getPersistentDataContainer().set(VillageMinerPlugin.miningTimeAttributeKey, PersistentDataType.INTEGER, Integer.valueOf(remainingTime));
 
         } else {
 
-            Location targetLocation = calculateTargetLocation(villager);
+            Location targetLocation = utils.calculateTargetLocation(villager);
             Block block = targetLocation.getWorld().getBlockAt(targetLocation);
 
-            plugin.getLogger().info("mining DONE!");
-            block.setType(Material.AIR);
+            if (block.getType() == Material.STONE) {
+                plugin.getLogger().finest("mining DONE!");
+                block.setType(Material.AIR);
 
 
-            ItemStack cobblestoneItem = new ItemStack(Material.COBBLESTONE);
-            World world = targetLocation.getWorld();
-            Item droppedItem = world.dropItem(new Location(world, targetLocation.getX(), targetLocation.getY(), targetLocation.getZ()), cobblestoneItem);
-            droppedItem.setPickupDelay(20 * 5);
+                ItemStack cobblestoneItem = new ItemStack(Material.COBBLESTONE);
+                World world = targetLocation.getWorld();
+                Item droppedItem = world.dropItem(new Location(world, targetLocation.getX(), targetLocation.getY(), targetLocation.getZ()), cobblestoneItem);
+                droppedItem.setPickupDelay(20 * 3);
+            }
+
+
 
             villager.getPersistentDataContainer().remove(VillageMinerPlugin.miningTimeAttributeKey);
+            startMining(villager);
         }
     }
-
-    private Location calculateTargetLocation(Villager villager) {
-        Integer iX = villager.getPersistentDataContainer().get(VillageMinerPlugin.targetXAttributeKey, PersistentDataType.INTEGER);
-        Integer iY = villager.getPersistentDataContainer().get(VillageMinerPlugin.targetYAttributeKey, PersistentDataType.INTEGER);
-        Integer iZ = villager.getPersistentDataContainer().get(VillageMinerPlugin.targetZAttributeKey, PersistentDataType.INTEGER);
-        Location targetLocation = new Location(villager.getWorld(), iX, iY, iZ);
-        plugin.getLogger().info("saved target location: " + targetLocation);
-        return targetLocation;
-    }
-
-    private Location calculateVillagerLocation(Villager villager) {
-        String sX = villager.getPersistentDataContainer().get(VillageMinerPlugin.locationXAttributeKey, PersistentDataType.STRING);
-        String sY = villager.getPersistentDataContainer().get(VillageMinerPlugin.locationYAttributeKey, PersistentDataType.STRING);
-        String sZ = villager.getPersistentDataContainer().get(VillageMinerPlugin.locationZAttributeKey, PersistentDataType.STRING);
-
-        Double dX = Double.parseDouble(sX);
-        Double dY = Double.parseDouble(sY);
-        Double dZ = Double.parseDouble(sZ);
-
-
-        Location location = new Location(villager.getWorld(), dX.doubleValue(), dY.doubleValue(), dZ.doubleValue());
-        plugin.getLogger().info("saved villager location: " + location);
-
-        return location;
-    }
-
 
     private boolean isMiningInProgress(Villager villager) {
         Integer miningTime = villager.getPersistentDataContainer().get(VillageMinerPlugin.miningTimeAttributeKey, PersistentDataType.INTEGER);
@@ -126,7 +106,6 @@ public class VillagerPickupTask extends BukkitRunnable {
     private void startMining(Villager villager) {
         UUID uniqueId = villager.getUniqueId();
         int durability = minerAxeDurability.get(uniqueId).get();
-//        plugin.getLogger().info("durability: " + durability);
         if (durability > 0) {
             digg(villager, 1);
         } else {
@@ -137,61 +116,45 @@ public class VillagerPickupTask extends BukkitRunnable {
     private void digg(Villager villager, int range) {
         Location villagerLocation = villager.getLocation();
 
-//        Location c1 = new Location(villager.getWorld(), villagerLocation.getX()+2, villagerLocation.getY()+2, villagerLocation.getZ()+2);
-//        Location c2 = new Location(villager.getWorld(), villagerLocation.getX()-2, villagerLocation.getY()-2, villagerLocation.getZ()-2);
-//        BoundingBox box = BoundingBox.of(c1,c2);
-//        List<Entity> blocks = villager.getWorld().getNearbyEntities(box, Item.class::isInstance).stream().filter(
-//                item -> {
-//                    if (item instanceof Item) {
-//                        Block block = item.getWorld().getBlockAt(item.getLocation());
-//                        if (block.getType() == Material.STONE) {
-//                            plugin.getLogger().info("is STONE");
-//                            return true;
-//                        } else {
-//                            plugin.getLogger().info("Not STONE");
-//                        }
-//                    } else {
-//                        plugin.getLogger().info("Not Item");
-//                    }
-//
-//                    return false;
-//                }
-//        ).toList();
-//
-//        plugin.getLogger().info("blocks.size: " + blocks.size());
-        for (int y = range; y >= -range; y--) {
+
+        for (int y = range+1; y >= -range; y--) {
             for (int z = range; z >= -range; z--) {
                 for (int x = -range; x <= range; x++) {
 
-
-                    plugin.getLogger().info("checking "+x+","+y+","+z+" ...");
-
-                    Location targetLocation = new Location(villager.getWorld(), villager.getLocation().getX(), villager.getLocation().getY(), villager.getLocation().getZ());
-                    targetLocation = targetLocation.add(x,y,z);
-                    Block block = targetLocation.getWorld().getBlockAt(targetLocation);
-                    if (block.getType() == Material.STONE) {
-
-                        Material material = block.getType();
-                        System.out.println("found block: " + material);
-
-                        villager.getPersistentDataContainer().set(VillageMinerPlugin.locationXAttributeKey, PersistentDataType.STRING, Double.toString(villagerLocation.getX()));
-                        villager.getPersistentDataContainer().set(VillageMinerPlugin.locationYAttributeKey, PersistentDataType.STRING, Double.toString(villagerLocation.getY()));
-                        villager.getPersistentDataContainer().set(VillageMinerPlugin.locationZAttributeKey, PersistentDataType.STRING, Double.toString(villagerLocation.getZ()));
-
-                        villager.getPersistentDataContainer().set(VillageMinerPlugin.miningTimeAttributeKey, PersistentDataType.INTEGER, Integer.valueOf(INITIAL_TIME_TO_DIGGING));
-                        villager.getPersistentDataContainer().set(VillageMinerPlugin.targetXAttributeKey, PersistentDataType.INTEGER, Integer.valueOf(targetLocation.getBlockX()));
-                        villager.getPersistentDataContainer().set(VillageMinerPlugin.targetYAttributeKey, PersistentDataType.INTEGER, Integer.valueOf(targetLocation.getBlockY()));
-                        villager.getPersistentDataContainer().set(VillageMinerPlugin.targetZAttributeKey, PersistentDataType.INTEGER, Integer.valueOf(targetLocation.getBlockZ()));
-
-                        UUID uniqueId = villager.getUniqueId();
-                        int durability = minerAxeDurability.get(uniqueId).decrementAndGet();
-                        plugin.getLogger().info("new durability is: " + durability);
-
-                        return;
+                    if (x == 0 && y == 0 && z == -1) {
+                        continue;
                     }
+
+                    if (checkBlock(villager, x, y, z, villagerLocation)) return;
                 }
             }
         }
+    }
+
+    private boolean checkBlock(Villager villager, int x, int y, int z, Location villagerLocation) {
+        plugin.getLogger().finest("checking "+ x +","+ y +","+ z +" ...");
+
+        Location targetLocation = new Location(villager.getWorld(), villager.getLocation().getX(), villager.getLocation().getY(), villager.getLocation().getZ());
+        targetLocation = targetLocation.add(x, y, z);
+        Block block = targetLocation.getWorld().getBlockAt(targetLocation);
+        if (block.getType() == Material.STONE) {
+
+            villager.getPersistentDataContainer().set(VillageMinerPlugin.locationXAttributeKey, PersistentDataType.STRING, Double.toString(villagerLocation.getX()));
+            villager.getPersistentDataContainer().set(VillageMinerPlugin.locationYAttributeKey, PersistentDataType.STRING, Double.toString(villagerLocation.getY()));
+            villager.getPersistentDataContainer().set(VillageMinerPlugin.locationZAttributeKey, PersistentDataType.STRING, Double.toString(villagerLocation.getZ()));
+
+            villager.getPersistentDataContainer().set(VillageMinerPlugin.miningTimeAttributeKey, PersistentDataType.INTEGER, Integer.valueOf(INITIAL_TIME_TO_DIGGING));
+            villager.getPersistentDataContainer().set(VillageMinerPlugin.targetXAttributeKey, PersistentDataType.INTEGER, Integer.valueOf(targetLocation.getBlockX()));
+            villager.getPersistentDataContainer().set(VillageMinerPlugin.targetYAttributeKey, PersistentDataType.INTEGER, Integer.valueOf(targetLocation.getBlockY()));
+            villager.getPersistentDataContainer().set(VillageMinerPlugin.targetZAttributeKey, PersistentDataType.INTEGER, Integer.valueOf(targetLocation.getBlockZ()));
+
+            UUID uniqueId = villager.getUniqueId();
+            int durability = minerAxeDurability.get(uniqueId).decrementAndGet();
+            plugin.getLogger().finest("new durability is: " + durability);
+
+            return true;
+        }
+        return false;
     }
 
     private void processGatheringPickaxe(Villager villager) {
@@ -225,9 +188,10 @@ public class VillagerPickupTask extends BukkitRunnable {
 
     private void simulateVillagerPickupBreath(Villager villager, Item item) {
 
-        plugin.getLogger().info("villager: " + villager.getProfession() + " pickup " + item.getName());
+        plugin.getLogger().finest("villager: " + villager.getProfession() + " pickup " + item.getName());
         int durability = calculateDurability(item.getItemStack().getType());
         minerAxeDurability.put(villager.getUniqueId(), new AtomicInteger(durability));
+        item.remove();
 
     }
 
@@ -259,14 +223,14 @@ public class VillagerPickupTask extends BukkitRunnable {
     }
 
     public boolean isItemUndamaged(ItemStack itemStack) {
-        plugin.getLogger().info("itemStack: " + itemStack);
-        plugin.getLogger().info("itemStack.hasItemMeta(): " + itemStack.hasItemMeta());
+        plugin.getLogger().finest("itemStack: " + itemStack);
+        plugin.getLogger().finest("itemStack.hasItemMeta(): " + itemStack.hasItemMeta());
         if (itemStack != null && itemStack.hasItemMeta()) {
             ItemMeta meta = itemStack.getItemMeta();
-            plugin.getLogger().info("meta: " + meta);
+            plugin.getLogger().finest("meta: " + meta);
             if (meta instanceof Damageable) {
                 Damageable damageable = (Damageable) meta;
-                plugin.getLogger().info("damageable: " + damageable);
+                plugin.getLogger().finest("damageable: " + damageable);
                 return damageable.getDamage() == 0;
             }
         }

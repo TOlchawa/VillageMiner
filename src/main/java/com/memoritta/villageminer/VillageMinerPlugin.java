@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 public class VillageMinerPlugin extends JavaPlugin {
 
     public static NamespacedKey isMinerAttributeKey;
+    public static NamespacedKey ownerMinerAttributeKey;
     public static NamespacedKey miningTimeAttributeKey;
     public static NamespacedKey targetXAttributeKey;
     public static NamespacedKey targetYAttributeKey;
@@ -25,6 +26,7 @@ public class VillageMinerPlugin extends JavaPlugin {
     public void onEnable() {
 
         isMinerAttributeKey = new NamespacedKey(this, "miner_type");
+        ownerMinerAttributeKey = new NamespacedKey(this, "miner_owner");
         miningTimeAttributeKey = new NamespacedKey(this, "is_digging");
         targetXAttributeKey = new NamespacedKey(this, "target_X");
         targetYAttributeKey = new NamespacedKey(this, "target_Y");
@@ -35,16 +37,22 @@ public class VillageMinerPlugin extends JavaPlugin {
 
         logger.setLevel(Level.INFO);
 
-        logger.info("VillageMiner has been enabled!");
-        this.getCommand("spawnvillager").setExecutor(new VillagerCommand(this, logger));
-        new VillagerPickupTask(this).runTaskTimer(this, 0L, 40L);
+        logger.finest("VillageMiner has been enabled!");
+        VillageMinerUtils utils = new VillageMinerUtils(this);
+        VillageMinerController villageMinerController = new VillageMinerController(this, utils);
+        VillagerCommand commandsExecutor = new VillagerCommand(this, logger, villageMinerController);
+        this.getCommand("spawnminer").setExecutor(commandsExecutor);
+        this.getCommand("killminer").setExecutor(commandsExecutor);
+        new VillagerPickupTask(this, villageMinerController, utils).runTaskTimer(this, 0L, 40L);
+        villageMinerController.runTaskTimer(this, 0L, 5L);
 
-        logger.info("Plugin enabled.");
+
+        logger.finest("Plugin enabled.");
 
     }
 
     @Override
     public void onDisable() {
-        getLogger().info("VillageMiner has been disabled.");
+        getLogger().finest("VillageMiner has been disabled.");
     }
 }

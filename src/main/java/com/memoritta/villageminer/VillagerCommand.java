@@ -17,41 +17,44 @@ public class VillagerCommand implements CommandExecutor {
 
     private final VillageMinerPlugin plugin;
     private final Logger logger;
+    private final VillageMinerListener villageMinerListener;
 
-    public VillagerCommand(VillageMinerPlugin plugin, Logger logger) {
+    public VillagerCommand(VillageMinerPlugin plugin, Logger logger, VillageMinerListener villageMinerListener) {
         this.plugin = plugin;
         this.logger = logger;
+        this.villageMinerListener = villageMinerListener;
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        plugin.getLogger().finest("command: " + command.getName());
         if (sender instanceof Player) {
             Player player = (Player) sender;
-            Location location = player.getLocation();
-            Villager villager = player.getWorld().spawn(location, Villager.class);
-            villager.setCustomName(player.getDisplayName() + "'s miner");
-            villager.setCustomNameVisible(true);
-            villager.setProfession(Villager.Profession.NONE);
-            villager.setCustomName(ChatColor.GRAY + "Miner");
-            villager.setCustomNameVisible(true);
-            villager.getPersistentDataContainer().set(VillageMinerPlugin.isMinerAttributeKey, PersistentDataType.STRING, MINER);
+            if ("killminer".equalsIgnoreCase(command.getName())) {
+                plugin.getLogger().finest("killing ...");
+                villageMinerListener.killMiners(player);
+                return true;
 
-            logger.info("start villager: " + villager.toString());
+            } else {
 
-            // Make the villager follow the player
-            new BukkitRunnable() {
+                villageMinerListener.killMiners(player);
 
-                public void run() {
+                Location location = player.getLocation();
+                Villager villager = player.getWorld().spawn(location, Villager.class);
+                villager.setCustomName(player.getDisplayName() + "'s miner");
+                villager.setCustomNameVisible(true);
+                villager.setProfession(Villager.Profession.NONE);
+                villager.setCustomName(ChatColor.GRAY + "Miner");
+                villager.setCustomNameVisible(true);
+                villager.getPersistentDataContainer().set(VillageMinerPlugin.isMinerAttributeKey, PersistentDataType.STRING, MINER);
+                villager.getPersistentDataContainer().set(VillageMinerPlugin.ownerMinerAttributeKey, PersistentDataType.STRING, player.getUniqueId().toString());
 
-                    if (villager.isDead() || !player.isOnline()) {
-                        this.cancel();
-                        return;
-                    }
+                villageMinerListener.register(villager);
 
-                }
-            }.runTaskTimerAsynchronously(plugin,0L, 2000L); // runs every second
+                logger.finest("start villager: " + villager.toString());
 
-            return true;
+                return true;
+            }
         }
         return false;
     }
