@@ -49,7 +49,7 @@ public class VillageMinerPlugin extends JavaPlugin {
         VillagerCommand commandsExecutor = new VillagerCommand(this, logger, villageMinerController);
         this.getCommand("spawnminer").setExecutor(commandsExecutor);
         this.getCommand("killminer").setExecutor(commandsExecutor);
-        new VillagerPickupTask(this, villageMinerController, utils).runTaskTimer(this, 0L, 40L);
+        new VillagerPickupTask(this, villageMinerController, utils).runTaskTimer(this, 0L, 10);
         villageMinerController.runTaskTimer(this, 0L, 5L);
 
 

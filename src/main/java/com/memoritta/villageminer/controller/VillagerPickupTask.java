@@ -1,15 +1,12 @@
 package com.memoritta.villageminer.controller;
 
 import com.memoritta.villageminer.VillageMinerPlugin;
-import com.memoritta.villageminer.controller.VillageMinerListener;
 import com.memoritta.villageminer.util.VillageMinerUtils;
-import net.minecraft.server.level.EntityPlayer;
-import net.minecraft.world.entity.EntityInsentient;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_20_R3.entity.CraftEntity;
-import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_20_R3.entity.CraftVillager;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Villager;
@@ -19,11 +16,12 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.memoritta.villageminer.controller.VillageMinerController.FOLLOW_MODE;
-import static org.bukkit.EntityEffect.SNIFFER_DIG;
 import static org.bukkit.Material.*;
 
 public class VillagerPickupTask extends BukkitRunnable {
@@ -103,7 +101,7 @@ public class VillagerPickupTask extends BukkitRunnable {
 
     private static boolean isAllovedToMine(Block block) {
         Material type = block.getType();
-        return type == STONE || type == GRANITE || type == DIORITE;
+        return type == STONE || type == GRANITE || type == DIORITE || type == TUFF;
     }
 
     private static ItemStack resultOfMining(Block originalBlock) {
@@ -119,6 +117,10 @@ public class VillagerPickupTask extends BukkitRunnable {
             case DIORITE:
                 resultType = DIORITE;
                 break;
+            case TUFF:
+                resultType = TUFF;
+                break;
+
 
             default:
                 resultType = COBBLESTONE;
