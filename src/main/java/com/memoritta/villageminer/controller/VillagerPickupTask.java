@@ -22,6 +22,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.memoritta.villageminer.controller.VillageMinerController.FOLLOW_MODE;
+import static com.memoritta.villageminer.controller.VillageMinerController.SEARCH_MODE;
 import static org.bukkit.Material.*;
 
 public class VillagerPickupTask extends BukkitRunnable {
@@ -45,6 +46,11 @@ public class VillagerPickupTask extends BukkitRunnable {
 
             if (isViallageMinerProfession(entity)) {
                 Villager villager = (Villager) entity;
+
+                String mode = villager.getPersistentDataContainer().get(VillageMinerPlugin.modeAttributeKey, PersistentDataType.STRING);
+                if (FOLLOW_MODE.equalsIgnoreCase(mode)) {
+                    return;
+                }
 
                 UUID uuid = villager.getUniqueId();
                 if (minerAxeDurability.containsKey(uuid)) {
@@ -139,11 +145,6 @@ public class VillagerPickupTask extends BukkitRunnable {
     }
 
     private void startMining(Villager villager) {
-
-        String mode = villager.getPersistentDataContainer().get(VillageMinerPlugin.modeAttributeKey, PersistentDataType.STRING);
-        if (FOLLOW_MODE.equalsIgnoreCase(mode)) {
-            return;
-        }
         
         UUID uniqueId = villager.getUniqueId();
         int durability = minerAxeDurability.get(uniqueId).get();
@@ -154,28 +155,28 @@ public class VillagerPickupTask extends BukkitRunnable {
         }
     }
 
-    private void digg(Villager villager, int range) {
-        Location villagerLocation = villager.getLocation();
+    private void digg(Villager miner, int range) {
+        Location villagerLocation = miner.getLocation();
 
 
         // LEVEL 1
 
         for (int z = range; z >= -(range); z--) {
             for (int x = -(range); x <= (range); x++) {
-                if (checkBlock(villager, x, 2, z, villagerLocation)) return;
+                if (checkBlock(miner, x, 2, z, villagerLocation)) return;
             }
         }
 
 
         for (int z = range; z >= -(range); z--) {
             for (int x = -(range); x <= (range); x++) {
-                if (checkBlock(villager, x, 1, z, villagerLocation)) return;
+                if (checkBlock(miner, x, 1, z, villagerLocation)) return;
             }
         }
 
         for (int z = range; z >= -(range); z--) {
             for (int x = -(range); x <= (range); x++) {
-                if (checkBlock(villager, x, 0, z, villagerLocation)) return;
+                if (checkBlock(miner, x, 0, z, villagerLocation)) return;
             }
         }
 
@@ -184,7 +185,7 @@ public class VillagerPickupTask extends BukkitRunnable {
                 if(z == 0 && x == 0) {
                     continue;
                 }
-                if (checkBlock(villager, x, -1, z, villagerLocation)) return;
+                if (checkBlock(miner, x, -1, z, villagerLocation)) return;
             }
         }
 
@@ -192,19 +193,19 @@ public class VillagerPickupTask extends BukkitRunnable {
 
         for (int z = range+1; z >= -(range+1); z--) {
             for (int x = -(range+1); x <= range+1; x++) {
-                if (checkBlock(villager, x, 2, z, villagerLocation)) return;
+                if (checkBlock(miner, x, 2, z, villagerLocation)) return;
             }
         }
 
         for (int z = range+1; z >= -(range+1); z--) {
             for (int x = -(range+1); x <= range+1; x++) {
-                if (checkBlock(villager, x, 1, z, villagerLocation)) return;
+                if (checkBlock(miner, x, 1, z, villagerLocation)) return;
             }
         }
 
         for (int z = range+1; z >= -(range+1); z--) {
             for (int x = -(range+1); x <= range+1; x++) {
-                if (checkBlock(villager, x, 0, z, villagerLocation)) return;
+                if (checkBlock(miner, x, 0, z, villagerLocation)) return;
             }
         }
 
@@ -213,11 +214,13 @@ public class VillagerPickupTask extends BukkitRunnable {
                 if(z == 0 && x == 0) {
                     continue;
                 }
-                if (checkBlock(villager, x*2, -1, z*2, villagerLocation)) return;
+                if (checkBlock(miner, x*2, -1, z*2, villagerLocation)) return;
             }
         }
 
-        if (checkBlock(villager, 0, -1, 0, villagerLocation));
+        if (checkBlock(miner, 0, -1, 0, villagerLocation)) return;
+
+        miner.getPersistentDataContainer().set(VillageMinerPlugin.modeAttributeKey, PersistentDataType.STRING, SEARCH_MODE);
 
     }
 

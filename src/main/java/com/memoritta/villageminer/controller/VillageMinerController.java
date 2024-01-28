@@ -3,24 +3,26 @@ package com.memoritta.villageminer.controller;
 import com.memoritta.villageminer.VillageMinerPlugin;
 import com.memoritta.villageminer.util.VillageMinerUtils;
 import net.minecraft.server.level.EntityPlayer;
-import net.minecraft.world.entity.EntityLiving;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_20_R3.entity.CraftVillager;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
-import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 import static org.bukkit.event.entity.EntityTargetEvent.TargetReason.FOLLOW_LEADER;
-import static org.bukkit.event.entity.EntityTargetEvent.TargetReason.FORGOT_TARGET;
 
 public class VillageMinerController extends BukkitRunnable implements VillageMinerListener {
 
     public static final String FOLLOW_MODE = "FOLLOW";
+    public static final String SEARCH_MODE = "SEARCH";
+    public static final String WORK_MODE = "WORK";
     private final VillageMinerPlugin villageMinerPlugin;
     private final VillageMinerUtils utils;
     private static final List<Villager> miners = new LinkedList<>();
@@ -37,7 +39,7 @@ public class VillageMinerController extends BukkitRunnable implements VillageMin
                 miners.remove(miner);
             } else {
                 String mode = miner.getPersistentDataContainer().get(VillageMinerPlugin.modeAttributeKey, PersistentDataType.STRING);
-                if (!FOLLOW_MODE.equalsIgnoreCase(mode)) {
+                if (!isMoveMode(mode)) {
                     Integer time = miner.getPersistentDataContainer().get(VillageMinerPlugin.miningTimeAttributeKey, PersistentDataType.INTEGER);
                     if (time != null && time > 0) {
                         Location minerLocation = utils.calculateVillagerLocation(miner);
@@ -46,6 +48,10 @@ public class VillageMinerController extends BukkitRunnable implements VillageMin
                 }
             }
         });
+    }
+
+    private static boolean isMoveMode(String mode) {
+        return FOLLOW_MODE.equalsIgnoreCase(mode) || SEARCH_MODE.equalsIgnoreCase(mode);
     }
 
     @Override
@@ -99,7 +105,7 @@ public class VillageMinerController extends BukkitRunnable implements VillageMin
                     villageMinerPlugin.getLogger().info("execute unfollow");
                     CraftVillager craftVillager = (CraftVillager) miner;
                     craftVillager.getHandle().setTarget(null, FOLLOW_LEADER, true);
-                    miner.getPersistentDataContainer().set(VillageMinerPlugin.modeAttributeKey, PersistentDataType.STRING, "WORK");
+                    miner.getPersistentDataContainer().set(VillageMinerPlugin.modeAttributeKey, PersistentDataType.STRING, WORK_MODE);
                 }
             }
         });
